@@ -189,10 +189,14 @@ class Pommo
 		self::$_section = preg_replace('@^admin/?@i', '',
 				str_replace(self::$_baseUrl, '', dirname($_SERVER['PHP_SELF'])));
 
+		$db_conn_compress = (strtolower($config['db_conn_compress']) != 'on') ? 0 : MYSQL_CLIENT_COMPRESS;
+		$db_conn_secure   = (strtolower($config['db_conn_secure']) != 'on') ? 0 : MYSQL_CLIENT_SSL;
+
 		// 	initialize database link
 		self::$_dbo = @new Pommo_Db($config['db_username'],
 				$config['db_password'], $config['db_database'],
-				$config['db_hostname'], $config['db_prefix']);
+				$config['db_hostname'], $config['db_prefix'],
+				$db_conn_compress, $db_conn_secure);
 
 		// 	turn off debugging if in user area
 		if(self::$_section == 'user')

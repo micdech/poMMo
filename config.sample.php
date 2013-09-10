@@ -27,6 +27,12 @@ See config.simple.sample.php for a condensed, readable config file.
 [db_prefix] = "pommo_"
 	Change if you intend to have multiple poMMos running from the same database
 
+[db_conn_compress] = off
+	Enable (on) or disable(off). Use compression protocol for connection
+
+[db_conn_secure] = off
+	Enable (on) or disable(off). Use SSL encryption when connecting to database
+
  	
 ::: Language Information :::
 

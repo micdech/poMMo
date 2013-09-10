@@ -40,7 +40,7 @@ class Pommo_Db
 	var $_results; // array holding unique results (for use with executing queries within loops & not overwriting the loops conditional resultset)
 
 	function Pommo_Db($username = NULL, $password = NULL, $database = NULL,
-			$hostname = NULL, $tablePrefix = NULL)
+			$hostname = NULL, $tablePrefix = NULL, $compress = 0, $secure = 0)
 	{
 		// turn off magic quotes runtime
 		if (get_magic_quotes_runtime())
@@ -81,7 +81,7 @@ class Pommo_Db
 
 		// connect to mysql database using config variables from poMMo class (set in setup/config.php).
 		// supress errors to hide login information...
-		$this->_link = mysql_connect($hostname, $username, $password);
+		$this->_link = mysql_connect($hostname, $username, $password, false, $compress | $secure);
 
 		if (!$this->_link)
 			Pommo::kill(Pommo::_T('Could not establish database connection.').' '.Pommo::_T('Verify your settings in config.php'));

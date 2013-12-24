@@ -33,6 +33,9 @@ include $this->template_dir.'/inc/admin.header.php';
         <li><a href="ajax/general.php"><span><?php echo _('General'); ?></span></a></li>
         <li><a href="ajax/mailings.php"><span><?php echo _('Mailings'); ?></span></a></li>
         <li><a href="ajax/messages.php"><span><?php echo _('Messages'); ?></span></a></li>
+        <?php if ('dev' === getenv('POMMO_ENV')) { ?>
+        <li><a href="ajax/bounces.php"><span><?php echo _('Bounces'); ?></span></a></li>
+        <?php } ?>
     </ul>
 </div>
 

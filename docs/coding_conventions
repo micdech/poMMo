@@ -33,13 +33,13 @@ Class Variables and Methods.
 Constants.
 
 - Constants should always be all-uppercase, with underscores to separate words.
-- The true, false and null constants are excepted from the all-uppercase rule, and must always be lowercase. 
+- The true, false and null constants are excepted from the all-uppercase rule, and must always be lowercase.
 
 
 Indenting and Line Length
 --------------------------------------------------------------------------------
 
-- Indent using tabs, not spaces. Set tab length to 4 spaces.
+- Indent using spaces 4 spaces not tabs.
 - Line length shouldn't exceed 85 characters.
 - If lines are split to fit the 85 characters limit then the new lines should be indented to two tab keys from the position the line started.
 
@@ -47,7 +47,7 @@ Indenting and Line Length
 Control Structures
 --------------------------------------------------------------------------------
 
-- Control statements should have one space between the control keyword and opening parenthesis, to distinguish them from function calls. 
+- Control statements should have one space between the control keyword and opening parenthesis, to distinguish them from function calls.
 - You are strongly encouraged to always use curly braces even in situations where they are technically optional.
 - Split long if statements onto several lines. Keep the operators at the beginning of the line.
 
@@ -89,7 +89,7 @@ Comments
 
 - Complete inline documentation comment blocks (docblocks) must be provided.
 - Non-documentation comments are strongly encouraged. A general rule of thumb is that if you look at a section of code and think "Wow, I don't want to try and describe that", you need to comment it before you forget how it works.
-- C style comments (/* */) and standard C++ comments (//) are both fine. Use of Perl/shell style comments (#) is discouraged. 
+- C style comments (/* */) and standard C++ comments (//) are both fine. Use of Perl/shell style comments (#) is discouraged.
 
 Example doc block comment
 	/**

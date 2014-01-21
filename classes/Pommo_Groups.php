@@ -37,295 +37,295 @@ require_once(Pommo::$_baseDir.'classes/Pommo_Type.php');
  */
 
 class Pommo_Groups {
- 	var $_name; // name of group
- 	var $_group; // the group object
- 	var $_tally; // the group tally
- 	var $_status; // subscriber status (0(inactive),1(active),2(pending))
- 	var $_memberIDs; // array of member IDs (if group is numeric)
- 	var $_id; // ID of bgroup
+    var $_name; // name of group
+    var $_group; // the group object
+    var $_tally; // the group tally
+    var $_status; // subscriber status (0(inactive),1(active),2(pending))
+    var $_memberIDs; // array of member IDs (if group is numeric)
+    var $_id; // ID of bgroup
 
- 	// ============ NON STATIC METHODS ===================
- 	function __construct($groupID = NULL, $status = 1, $filter = FALSE) {
- 		$this->_status = $status;
- 		if (!is_numeric($groupID)) { // exception if no group ID was passed -- group assumes "all subscribers".
- 			require_once(Pommo::$_baseDir.'classes/Pommo_Subscribers.php');
+    // ============ NON STATIC METHODS ===================
+    function __construct($groupID = NULL, $status = 1, $filter = FALSE) {
+        $this->_status = $status;
+        if (!is_numeric($groupID)) { // exception if no group ID was passed -- group assumes "all subscribers".
+            require_once(Pommo::$_baseDir.'classes/Pommo_Subscribers.php');
 
- 			$this->_group = array('rules' => array(), 'id' => 0);
- 			$this->_id = 0;
- 			$this->_name = Pommo::_T('All Subscribers');
+            $this->_group = array('rules' => array(), 'id' => 0);
+            $this->_id = 0;
+            $this->_name = Pommo::_T('All Subscribers');
 
- 			$this->_memberIDs = (is_array($filter)) ?
- 				Pommo_Groups::getMemberIDs($this->_group, $status, $filter) :
- 				null;
+            $this->_memberIDs = (is_array($filter)) ?
+                Pommo_Groups::getMemberIDs($this->_group, $status, $filter) :
+                null;
 
- 			$this->_tally = (is_array($filter)) ?
- 				count($this->_memberIDs) :
- 				Pommo_Subscribers::tally($status);
+            $this->_tally = (is_array($filter)) ?
+                count($this->_memberIDs) :
+                Pommo_Subscribers::tally($status);
 
- 			return;
- 		}
+            return;
+        }
 
- 		$this->_group = current(Pommo_Groups::get(array('id' => $groupID)));
-		$this->_id= $groupID;
- 		$this->_name =& $this->_group['name'];
+        $this->_group = current(Pommo_Groups::get(array('id' => $groupID)));
+        $this->_id= $groupID;
+        $this->_name =& $this->_group['name'];
 
-		$this->_memberIDs = Pommo_Groups::getMemberIDs($this->_group, $status, $filter);
-		$this->_tally = count($this->_memberIDs);
+        $this->_memberIDs = Pommo_Groups::getMemberIDs($this->_group, $status, $filter);
+        $this->_tally = count($this->_memberIDs);
 
-		return;
- 	}
+        return;
+    }
 
- 	// returns sorted/ordered/limited member IDs -- scoped to current group member IDs
- 	function members($p = array(),
- 			$filter = array('field' => null, 'string' => null))
- 	{
- 		require_once(Pommo::$_baseDir.'classes/Pommo_Subscribers.php');
- 		if(is_array($this->_memberIDs))
- 		{
- 			$p['id'] =& $this->_memberIDs;
- 		}
- 		else // status was already passed when fetching IDs
- 		{
- 			$p['status'] = $this->_status;
- 		}
+    // returns sorted/ordered/limited member IDs -- scoped to current group member IDs
+    function members($p = array(),
+            $filter = array('field' => null, 'string' => null))
+    {
+        require_once(Pommo::$_baseDir.'classes/Pommo_Subscribers.php');
+        if(is_array($this->_memberIDs))
+        {
+            $p['id'] =& $this->_memberIDs;
+        }
+        else // status was already passed when fetching IDs
+        {
+            $p['status'] = $this->_status;
+        }
 
- 		return Pommo_Subscribers::get($p, $filter);
- 	}
+        return Pommo_Subscribers::get($p, $filter);
+    }
 
 
- 	// ============ STATIC METHODS ===================
+    // ============ STATIC METHODS ===================
 
- 	// make a group template
-	// accepts a group template (assoc array)
-	// return a group object (array)
-	public static function make($in = array()) {
-		$o = Pommo_Type::group();
-		return Pommo_Api::getParams($o, $in);
-	}
+    // make a group template
+    // accepts a group template (assoc array)
+    // return a group object (array)
+    public static function make($in = array()) {
+        $o = Pommo_Type::group();
+        return Pommo_Api::getParams($o, $in);
+    }
 
-	// make a group template based off a database row (group/group_rules schema)
-	// accepts a group template (assoc array)
-	// return a group object (array)
-	static function & makeDB(&$row) {
-		$in = @array(
-		'id' => $row['group_id'],
-		'name' => $row['group_name']);
-		$o = Pommo_Type::group();
-		return Pommo_Api::getParams($o,$in);
-	}
+    // make a group template based off a database row (group/group_rules schema)
+    // accepts a group template (assoc array)
+    // return a group object (array)
+    static function & makeDB(&$row) {
+        $in = @array(
+        'id' => $row['group_id'],
+        'name' => $row['group_name']);
+        $o = Pommo_Type::group();
+        return Pommo_Api::getParams($o,$in);
+    }
 
-	// group validation
-	// accepts a group object (array)
-	// returns true if group ($in) is valid, false if not
+    // group validation
+    // accepts a group object (array)
+    // returns true if group ($in) is valid, false if not
 
-	// TODO -> add validation of group array
-	public static function validate(&$in) {
-		$logger =& Pommo::$_logger;
+    // TODO -> add validation of group array
+    public static function validate(&$in) {
+        $logger =& Pommo::$_logger;
 
-		$invalid = array();
+        $invalid = array();
 
-		if (empty($in['name']))
-			$invalid[] = 'name';
-		if (!is_array($in['rules']))
-			$invalid[] = 'rules';
+        if (empty($in['name']))
+            $invalid[] = 'name';
+        if (!is_array($in['rules']))
+            $invalid[] = 'rules';
 
-		if (!empty($invalid)) {
-			$logger->addErr("Group failed validation on; ".implode(',',$invalid),1);
-			return false;
-		}
-		return true;
-	}
+        if (!empty($invalid)) {
+            $logger->addErr("Group failed validation on; ".implode(',',$invalid),1);
+            return false;
+        }
+        return true;
+    }
 
-	// fetches groups from the database
-	// accepts a filtering array -->
-	//   id (array) -> an array of field IDs
-	// returns an array of groups. Array key(s) correlates to group ID.
-	static function & get($p = array()) {
-		$defaults = array('id' => null);
-		$p = Pommo_Api::getParams($defaults, $p);
+    // fetches groups from the database
+    // accepts a filtering array -->
+    //   id (array) -> an array of field IDs
+    // returns an array of groups. Array key(s) correlates to group ID.
+    static function & get($p = array()) {
+        $defaults = array('id' => null);
+        $p = Pommo_Api::getParams($defaults, $p);
 
-		$dbo =& Pommo::$_dbo;
+        $dbo =& Pommo::$_dbo;
 
-		$o = array();
+        $o = array();
 
-		$query = "
-			SELECT g.group_id, g.group_name, c.rule_id, c.field_id, c.logic, c.value, c.type
-			FROM " . $dbo->table['groups']." g
-			LEFT JOIN " . $dbo->table['group_rules']." c
-				ON (g.group_id = c.group_id)
-			WHERE
-				1
-				[AND g.group_id IN(%C)]
-			ORDER BY g.group_name";
-		$query = $dbo->prepare($query,array($p['id']));
+        $query = "
+            SELECT g.group_id, g.group_name, c.rule_id, c.field_id, c.logic, c.value, c.type
+            FROM " . $dbo->table['groups']." g
+            LEFT JOIN " . $dbo->table['group_rules']." c
+                ON (g.group_id = c.group_id)
+            WHERE
+                1
+                [AND g.group_id IN(%C)]
+            ORDER BY g.group_name";
+        $query = $dbo->prepare($query,array($p['id']));
 
-		while ($row = $dbo->getRows($query)) {
-			if (empty($o[$row['group_id']]))
-				$o[$row['group_id']] = Pommo_Groups::makeDB($row);
+        while ($row = $dbo->getRows($query)) {
+            if (empty($o[$row['group_id']]))
+                $o[$row['group_id']] = Pommo_Groups::makeDB($row);
 
-			if(!empty($row['rule_id'])) {
-				$c = array (
-					'field_id' => $row['field_id'],
-					'logic' => $row['logic'],
-					'value' => $row['value'],
-					'or' => ($row['type'] == 0) ? false : true
-				);
-				$o[$row['group_id']]['rules'][$row['rule_id']] = $c;
-			}
-		}
+            if(!empty($row['rule_id'])) {
+                $c = array (
+                    'field_id' => $row['field_id'],
+                    'logic' => $row['logic'],
+                    'value' => $row['value'],
+                    'or' => ($row['type'] == 0) ? false : true
+                );
+                $o[$row['group_id']]['rules'][$row['rule_id']] = $c;
+            }
+        }
 
-		return $o;
-	}
+        return $o;
+    }
 
-	// fetches group name(s) from the database
-	// accepts a filtering array -->
-	//   id (int || array) -> an array of field IDs
-	// returns an array of group names. Array key(s) correlates to group ID.
-	public static function getNames($id = null) {
-		$dbo =& Pommo::$_dbo;
+    // fetches group name(s) from the database
+    // accepts a filtering array -->
+    //   id (int || array) -> an array of field IDs
+    // returns an array of group names. Array key(s) correlates to group ID.
+    public static function getNames($id = null) {
+        $dbo =& Pommo::$_dbo;
 
-		$o = array();
+        $o = array();
 
-		$query = "
-			SELECT group_id, group_name
-			FROM " . $dbo->table['groups']."
-			WHERE
-				1
-				[AND group_id IN(%C)]
-			ORDER BY group_name";
-		$query = $dbo->prepare($query,array($id));
+        $query = "
+            SELECT group_id, group_name
+            FROM " . $dbo->table['groups']."
+            WHERE
+                1
+                [AND group_id IN(%C)]
+            ORDER BY group_name";
+        $query = $dbo->prepare($query,array($id));
 
-		while ($row = $dbo->getRows($query))
-			$o[$row['group_id']] = $row['group_name'];
+        while ($row = $dbo->getRows($query))
+            $o[$row['group_id']] = $row['group_name'];
 
-		return $o;
-	}
+        return $o;
+    }
 
-	// gets the members of a group
-	// accepts a group object (array)
-	// accepts filter by status (str) either 1 (active) (default), 0 (inactive), 2 (pending)
-	// accepts a toggle (bool) to return IDs or Group Tally
-	// returns an array of subscriber IDs
-	function & getMemberIDs($group, $status = 1, $filter = false) {
-		$dbo =& Pommo::$_dbo;
-		require_once(Pommo::$_baseDir. 'classes/Pommo_Sql.php');
+    // gets the members of a group
+    // accepts a group object (array)
+    // accepts filter by status (str) either 1 (active) (default), 0 (inactive), 2 (pending)
+    // accepts a toggle (bool) to return IDs or Group Tally
+    // returns an array of subscriber IDs
+    function & getMemberIDs($group, $status = 1, $filter = false) {
+        $dbo =& Pommo::$_dbo;
+        require_once(Pommo::$_baseDir. 'classes/Pommo_Sql.php');
 
-		if (empty($group['rules']) && $group['id'] != 0) {
-			$o = array();
-			return $o;
-		}
+        if (empty($group['rules']) && $group['id'] != 0) {
+            $o = array();
+            return $o;
+        }
 
-		$query = Pommo_Sql::groupSQL($group, false, $status, $filter);
-		return $dbo->getAll($query, 'assoc', 'subscriber_id');
-	}
+        $query = Pommo_Sql::groupSQL($group, false, $status, $filter);
+        return $dbo->getAll($query, 'assoc', 'subscriber_id');
+    }
 
-	// Returns the # of members in a group
-	// accepts a group object (array)
-	// accepts filter by status (int) either 1 (active) (default), 0 (inactive), 2 (pending)
-	// accepts a toggle (bool) to return IDs or Group Tally
-	// returns a tally (int)
-	public static function tally($group, $status = 1) {
-		$dbo =& Pommo::$_dbo;
-		require_once(Pommo::$_baseDir. 'classes/Pommo_Sql.php');
+    // Returns the # of members in a group
+    // accepts a group object (array)
+    // accepts filter by status (int) either 1 (active) (default), 0 (inactive), 2 (pending)
+    // accepts a toggle (bool) to return IDs or Group Tally
+    // returns a tally (int)
+    public static function tally($group, $status = 1) {
+        $dbo =& Pommo::$_dbo;
+        require_once(Pommo::$_baseDir. 'classes/Pommo_Sql.php');
 
-		if (empty($group['rules']))
-			return 0;
+        if (empty($group['rules']))
+            return 0;
 
-		$query = Pommo_Sql::groupSQL($group, true, $status);
+        $query = Pommo_Sql::groupSQL($group, true, $status);
 
-		return $dbo->query($query,0);
-	}
+        return $dbo->query($query,0);
+    }
 
-	// adds a group to the database
-	// accepts a group object (array)
-	// returns the database ID of the added group or FALSE if failed
-	public static function add($in) {
-		$dbo =& Pommo::$_dbo;
+    // adds a group to the database
+    // accepts a group object (array)
+    // returns the database ID of the added group or FALSE if failed
+    public static function add($in) {
+        $dbo =& Pommo::$_dbo;
 
-		if (!Pommo_Groups::validate($in))
-			return false;
+        if (!Pommo_Groups::validate($in))
+            return false;
 
-		$query = "
-		INSERT INTO " . $dbo->table['groups'] . "
-		SET
-		group_name='%s'";
-		$query = $dbo->prepare($query,@array(
-			$in['name']
-		));
+        $query = "
+        INSERT INTO " . $dbo->table['groups'] . "
+        SET
+        group_name='%s'";
+        $query = $dbo->prepare($query,@array(
+            $in['name']
+        ));
 
-		return $dbo->lastId($query);
-	}
+        return $dbo->lastId($query);
+    }
 
-	// removes a group from the database
-	// accepts a single ID (int) or array of IDs
-	// returns the # of deleted groups (int). 0 (false) if none.
-	public static function delete($id) {
-		$dbo =& Pommo::$_dbo;
+    // removes a group from the database
+    // accepts a single ID (int) or array of IDs
+    // returns the # of deleted groups (int). 0 (false) if none.
+    public static function delete($id) {
+        $dbo =& Pommo::$_dbo;
 
-		$query = "
-			DELETE
-			FROM " . $dbo->table['groups'] . "
-			WHERE group_id IN(%c)";
-		$query = $dbo->prepare($query,array($id));
+        $query = "
+            DELETE
+            FROM " . $dbo->table['groups'] . "
+            WHERE group_id IN(%c)";
+        $query = $dbo->prepare($query,array($id));
 
-		$affected = $dbo->affected($query);
+        $affected = $dbo->affected($query);
 
-		// remove rules referencing this group
-		$query = "
-			DELETE FROM ".$dbo->table['group_rules']."
-			WHERE
-				group_id IN (%c)
-				OR (logic='is_in' AND value IN (%c))
-				OR (logic='not_in' AND value IN (%c))";
-		$dbo->query($dbo->prepare($query,array($id,$id,$id)));
+        // remove rules referencing this group
+        $query = "
+            DELETE FROM ".$dbo->table['group_rules']."
+            WHERE
+                group_id IN (%c)
+                OR (logic='is_in' AND value IN (%c))
+                OR (logic='not_in' AND value IN (%c))";
+        $dbo->query($dbo->prepare($query,array($id,$id,$id)));
 
-		return $affected;
+        return $affected;
 
-	}
+    }
 
-	// Returns the # of rules affected by a group deletion
-	// accepts a single ID (int) or array of IDs.
-	// Returns a count (int) of affected rules. 0 if none.
-	public static function rulesAffected($id = array()) {
-		$dbo =& Pommo::$_dbo;
+    // Returns the # of rules affected by a group deletion
+    // accepts a single ID (int) or array of IDs.
+    // Returns a count (int) of affected rules. 0 if none.
+    public static function rulesAffected($id = array()) {
+        $dbo =& Pommo::$_dbo;
 
-		$query = "
-			SELECT DISTINCT count(rule_id)
-			FROM ".$dbo->table['group_rules']."
-			WHERE
-				group_id IN (%c)
-				OR (value IN (%c) AND (logic='is_in' OR logic='not_in'))";
-		$query=$dbo->prepare($query,array($id,$id));
-		return $dbo->query($query,0);
-	}
+        $query = "
+            SELECT DISTINCT count(rule_id)
+            FROM ".$dbo->table['group_rules']."
+            WHERE
+                group_id IN (%c)
+                OR (value IN (%c) AND (logic='is_in' OR logic='not_in'))";
+        $query=$dbo->prepare($query,array($id,$id));
+        return $dbo->query($query,0);
+    }
 
-	// Checks if a group name exists
-	// accepts a name (str)
-	// returns (bool) true if exists, false if not
-	public static function nameExists($name = null) {
-		$dbo =& Pommo::$_dbo;
+    // Checks if a group name exists
+    // accepts a name (str)
+    // returns (bool) true if exists, false if not
+    public static function nameExists($name = null) {
+        $dbo =& Pommo::$_dbo;
 
-		$query = "
-			SELECT count(group_id)
-			FROM ".$dbo->table['groups']."
-			WHERE group_name='%s'";
-		$query=$dbo->prepare($query,array($name));
-		return (bool) $dbo->query($query,0);
-	}
+        $query = "
+            SELECT count(group_id)
+            FROM ".$dbo->table['groups']."
+            WHERE group_name='%s'";
+        $query=$dbo->prepare($query,array($name));
+        return (bool) $dbo->query($query,0);
+    }
 
-	// renames a group
-	// accepts a group ID (int)
-	// accepts a name (str)
-	// returns success (bool)
-	function nameChange($id, $name) {
-		$dbo =& Pommo::$_dbo;
+    // renames a group
+    // accepts a group ID (int)
+    // accepts a name (str)
+    // returns success (bool)
+    function nameChange($id, $name) {
+        $dbo =& Pommo::$_dbo;
 
-		$query = "
-			UPDATE ".$dbo->table['groups']."
-			SET group_name='%s'
-			WHERE group_id=%i";
-		$query=$dbo->prepare($query,array($name,$id));
-		return ($dbo->affected($query) > 0) ? TRUE : FALSE;
-	}
+        $query = "
+            UPDATE ".$dbo->table['groups']."
+            SET group_name='%s'
+            WHERE group_id=%i";
+        $query=$dbo->prepare($query,array($name,$id));
+        return ($dbo->affected($query) > 0) ? TRUE : FALSE;
+    }
  }
 ?>

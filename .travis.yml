@@ -3,5 +3,6 @@ php:
   - "5.4"
 before_script:
   - pyrus install pear/PHP_CodeSniffer
+  - phpenv rehash
   - npm install
 script: "./node_modules/grunt-cli/bin/grunt"

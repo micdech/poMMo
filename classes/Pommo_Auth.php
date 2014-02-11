@@ -15,16 +15,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with program; see the file docs/LICENSE. If not, write to the
- * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+ *  MA 02110-1301 USA.
  */
 
 // authentication object. Handles logged in user, permission level.
 class Pommo_Auth
 {
-
-    var $_username;	// current logged in user (default: null|session value)
-    var $_permissionLevel; // permission level of logged in user
-    var $_requiredLevel; // required level of permission (default: 1)
+    private $_username;	// current logged in user (default: null|session value)
+    private $_permissionLevel; // permission level of logged in user
+    private $_requiredLevel; // required level of permission (default: 1)
 
     /*	__construct
      *	default constructor. Get current logged in user from session.
@@ -43,19 +43,26 @@ class Pommo_Auth
 
         $p = Pommo_Api::getParams($defaults, $args);
 
-        if (empty(Pommo::$_session['username']))
-        {
+        if (empty(Pommo::$_session['username'])) {
             Pommo::$_session['username'] = $p['username'];
         }
 
         $this->_username = &Pommo::$_session['username'];
         $this->_permissionLevel = $this->getPermissionLevel($this->_username);
 
-        if ($p['requiredLevel'] > $this->_permissionLevel)
-        {
-            Pommo::kill(sprintf(Pommo::_T('Denied access. You must %slogin%s to'
-                    .' access this page...'), '<a href="'.Pommo::$_baseUrl.
-                    'index.php?referer='.$_SERVER['PHP_SELF'].'">', '</a>'));
+        if ($p['requiredLevel'] > $this->_permissionLevel) {
+            Pommo::kill(
+                sprintf(
+                    Pommo::_T(
+                        'Denied access. You must %slogin%s to' .
+                        ' access this page...'
+                    ),
+                    '<a href="' . Pommo::$_baseUrl .
+                    'index.php?referer=' . $_SERVER['PHP_SELF'] .
+                    '">',
+                    '</a>'
+                )
+            );
         }
 
     }
@@ -70,14 +77,14 @@ class Pommo_Auth
      */
     function getPermissionLevel($username = null)
     {
-        if ($username)
-        {
+        if ($username) {
             return 5;
         }
         return 0;
     }
 
-    function logout() {
+    function logout()
+    {
         $this->_username = null;
         $this->_permissionLevel = 0;
         session_destroy();
@@ -98,7 +105,8 @@ class Pommo_Auth
     }
 
     // Check if a user is authenticated (logged on)
-    function isAuthenticated() {
+    function isAuthenticated()
+    {
         return (empty($this->_username)) ? false : true;
     }
 }

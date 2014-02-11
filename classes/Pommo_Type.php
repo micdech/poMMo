@@ -22,7 +22,8 @@
 // basic types used by poMMo -- they are generally fed a row from the database
 //  as an assosciatve array
 
-class Pommo_Type {
+class Pommo_Type
+{
     /**
      * Field: A SubscriberField
      * ==SQL Schema==
@@ -32,11 +33,13 @@ class Pommo_Type {
      *	field_name		(str)			Descriptive name for field (used for short identification)
      *	field_prompt	(str)			Prompt assosiated with field on subscriber form
      *	field_normally	(str)			Default value of field on subscriber form
-     *	field_array		(str)			A serialized array of  the field such as the options of multiple choice fields (drop down select)
+     *	field_array		(str)			A serialized array of  the field such as
+     *               the options of multiple choice fields (drop down select)
      *	field_required	('on','off')	If field is required for subscription
      *	field_type		(enum)			checkbox, multiple, text, date, number
      */
-    static function field() {
+    static function field()
+    {
         return array(
             'id' => null,
             'active' => null,
@@ -64,7 +67,8 @@ class Pommo_Type {
      *  logic			(enum)		'is','not','greater','less','true','false','is_in','not_in'
      *	value			(str)		Match Value
      */
-    static function group() {
+    static function group()
+    {
         return array(
             'id' => null,
             'name' => null,
@@ -97,7 +101,8 @@ class Pommo_Type {
      *	value			(str)			Subscriber's field value
      */
 
-    public static function subscriber() {
+    public static function subscriber()
+    {
         return array(
             'id' => null,
             'email' => null,
@@ -109,13 +114,16 @@ class Pommo_Type {
             'data' => array()
         );
     }
-    function & subscriberPending() {
+
+    function & subscriberPending()
+    {
         $o = Pommo_Type::subscriber();
         $o['pending_code'] = $o['pending_array'] = $o['pending_type'] = null;
         return $o;
     }
 
-    function pending() {
+    function pending()
+    {
         return array(
             'id' => null,
             'subscriber_id' => null,
@@ -199,7 +207,8 @@ class Pommo_Type {
      *  altbody			(str)		Text body
      */
 
-    function template() {
+    function template()
+    {
         return array(
             'id' => null,
             'name' => null,

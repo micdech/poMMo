@@ -26,11 +26,11 @@
 class Pommo_Validate
 {
 
-    private $postToValidate = array();
-    private $data = array();
-    private $dataPasswordMatch = array();
-    private $errors = array();
-    private $currentValidationError = '';
+    private $_postToValidate = array();
+    private $_data = array();
+    private $_dataPasswordMatch = array();
+    private $_errors = array();
+    private $_currentValidationError = '';
 
     /**
      * 	setPost
@@ -43,12 +43,12 @@ class Pommo_Validate
     public function setPost($post)
     {
         //clear the arrays.. precautionary
-        unset($this->data);
+        unset($this->_data);
         unset($this->post);
-        unset($this->errors);
-        unset($this->dataMatch);
+        unset($this->_errors);
+        unset($this->dataPasswordMatch);
 
-        $this->postToValidate = $post;
+        $this->_postToValidate = $post;
     }
 
     /**
@@ -73,7 +73,7 @@ class Pommo_Validate
     public function addData($name, $type, $isEmptyAllowed, $regex = null)
     {
         $array = array($name, $type, $isEmptyAllowed, $regex);
-        $this->data[] = $array;
+        $this->_data[] = $array;
     }
 
     /**
@@ -87,7 +87,7 @@ class Pommo_Validate
     public function addPasswordMatch($name1, $name2)
     {
         $array = array($name1, $name2);
-        $this->dataPasswordMatch[] = $array;
+        $this->_dataPasswordMatch[] = $array;
     }
 
     /**
@@ -100,72 +100,56 @@ class Pommo_Validate
      */
     public function checkData()
     {
-    	$this->errors = null;
+        $this->_errors = null;
         $emptyMessage = _('Cannot be empty.');
         $passMatchMessage = _('Passwords must match.');
 
         //Check the data fields
-        foreach ($this->data as $array)
-        {
+        foreach ($this->_data as $array) {
             $name = $array[0];
             $type = $array[1];
             $isEmptyAllowed = $array[2];
 
             //Check if empty and allowed to be empty
-            if (empty($this->postToValidate[$name]))
-            {
-				if (!$isEmptyAllowed)
-				{
-					$this->errors[$name] = $emptyMessage;
-				}
-            }
-            else
-            {
+            if (empty($this->_postToValidate[$name])) {
+                if (!$isEmptyAllowed) {
+                    $this->_errors[$name] = $emptyMessage;
+                }
+            } else {
                 $functionName = 'validate'.$type;
-                $value = $this->postToValidate[$name];
-                if ($type != 'Other')
-                {
-                	if ('matchRegex' == $type)
-                	{
-                		$result = $this->{$functionName}($array[3], $value);
-                	}
-                	else
-                	{
-                		$result = $this->{$functionName}($value);
-					}
-                    if (!$result)
-                    {
-                        $this->errors[$name] = $this->currentValidationError;
+                $value = $this->_postToValidate[$name];
+                if ($type != 'Other') {
+                    if ('matchRegex' == $type) {
+                        $result = $this->{$functionName}($array[3], $value);
+                    } else {
+                        $result = $this->{$functionName}($value);
+                    }
+                    if (!$result) {
+                        $this->_errors[$name] = $this->_currentValidationError;
                     }
                 }
             }
         }
 
         //Check the fields that must match
-        foreach ($this->dataPasswordMatch as $i => $value)
-        {
-            $array = $this->dataPasswordMatch[$i];
+        foreach ($this->_dataPasswordMatch as $i => $value) {
+            $array = $this->_dataPasswordMatch[$i];
             $name1 = $array[0];
             $name2 = $array[1];
 
-            if (!empty($this->postToValidate[$name2]))
-            {
-                if ($this->postToValidate[$name1] != $this->postToValidate[$name2])
-                {
-                    $this->errors[$name2] = $passMatchMessage;
+            if (!empty($this->_postToValidate[$name2])) {
+                if ($this->_postToValidate[$name1] != $this->_postToValidate[$name2]) {
+                    $this->_errors[$name2] = $passMatchMessage;
                 }
-            } else
-            {
-                $this->errors[$name2] = $emptyMessage;
+            } else {
+                $this->_errors[$name2] = $emptyMessage;
             }
         }
 
         //Lets calling function know if there were errors.
-        if (empty($this->errors))
-        {
+        if (empty($this->_errors)) {
             return true;
-        } else
-        {
+        } else {
             return false;
         }
     }
@@ -180,7 +164,7 @@ class Pommo_Validate
      */
     public function getErrors()
     {
-        return $this->errors;
+        return $this->_errors;
     }
 
     /**
@@ -213,7 +197,8 @@ class Pommo_Validate
      *  NOTE: has the MAGIC FUNCTINALITY of changing "true"/"false" to checkbox "on"/off equivelent
      *  NOTE: has the MAGIC FUNCTIONALITY of trimming leading and trailing whitepace
      *  NOTE: has the MAGIC FUNCTIONALITY of shortening value to 60 characters (or 255 if a comment type)
-     *  TODO -> should fields be passed by reference? e.g. are they usually already available when subscriberData() is called?
+     *  TODO -> should fields be passed by reference? e.g. are they usually
+     *  already available when subscriberData() is called?
      */
     public static function subscriberData(&$in, $p = array())
     {
@@ -232,20 +217,16 @@ class Pommo_Validate
         $fields = Pommo_Fields::get(array('active' => $p['active']));
 
         $valid = true;
-        foreach ($fields as $id => $field)
-        {
-
+        foreach ($fields as $id => $field) {
             $inactive = ($field['active'] == 'on') ? false : true;
 
             if (!isset($in[$id]) && $p['skipReq'])
                 continue;
             $in[$id] = @trim($in[$id]);
 
-            if (empty($in[$id]))
-            {
+            if (empty($in[$id])) {
                 unset($in[$id]); // don't include blank values
-                if ($field['required'] == 'on')
-                {
+                if ($field['required'] == 'on') {
                     if ($p['log'])
                         $logger->addErr(sprintf(Pommo::_T('%s is a required field.'), $field['prompt']));
                     $valid = false;
@@ -263,10 +244,8 @@ class Pommo_Validate
                         $in[$id] = 'on';
                     if (strtolower($in[$id]) == 'false')
                         $in[$id] = '';
-                    if ($in[$id] != 'on' && $in[$id] != '')
-                    {
-                        if ($p['ignore'] || ($inactive && $p['ignoreInactive']))
-                        {
+                    if ($in[$id] != 'on' && $in[$id] != '') {
+                        if ($p['ignore'] || ($inactive && $p['ignoreInactive'])) {
                             unset($in[$id]);
                             break;
                         }
@@ -276,62 +255,89 @@ class Pommo_Validate
                     }
                     break;
                 case "multiple":
-                    if (is_array($in[$id]))
-                    {
+                    if (is_array($in[$id])) {
                         foreach ($in[$id] as $key => $val)
-                            if (!in_array($val, $field['array']))
-                            {
-                                if ($p['ignore'] || ($inactive && $p['ignoreInactive']))
-                                {
+                            if (!in_array($val, $field['array'])) {
+                                if ($p['ignore']
+                                        || ($inactive &&
+                                        $p['ignoreInactive'])) {
                                     unset($in[$id]);
                                     break;
                                 }
-                                if ($p['log'])
-                                    $logger->addErr(sprintf(Pommo::_T('Illegal input for field %s.'), $field['prompt']));
+                                if ($p['log']) {
+                                    $logger->addErr(
+                                        sprintf(
+                                            Pommo::_T(
+                                                'Illegal input for field %s.'
+                                            ),
+                                            $field['prompt']
+                                        )
+                                    );
+                                }
                                 $valid = false;
                             }
-                    }
-                    elseif (!in_array($in[$id], $field['array']))
-                    {
-                        if ($p['ignore'] || ($inactive && $p['ignoreInactive']))
-                        {
+                    } elseif (!in_array($in[$id], $field['array'])) {
+                        if ($p['ignore'] ||
+                                ($inactive && $p['ignoreInactive'])) {
                             unset($in[$id]);
                             break;
                         }
-                        if ($p['log'])
-                            $logger->addErr(sprintf(Pommo::_T('Illegal input for field %s.'), $field['prompt']));
+                        if ($p['log']) {
+                            $logger->addErr(
+                                sprintf(
+                                    Pommo::_T(
+                                        'Illegal input for field %s.'
+                                    ),
+                                    $field['prompt']
+                                )
+                            );
+                        }
                         $valid = false;
                     }
                     break;
-                case "date": // convert date to timestamp [float; using adodb time library]
+                // convert date to timestamp [float; using adodb time library]
+                case "date":
 
                     if (is_numeric($in[$id]))
                         $in[$id] = Pommo_Helper::timeToStr($in[$id]);
 
                     $in[$id] = Pommo_Helper::timeFromStr($in[$id]);
 
-                    if (!$in[$id])
-                    {
-                        if ($p['ignore'] || ($inactive && $p['ignoreInactive']))
-                        {
+                    if (!$in[$id]) {
+                        if ($p['ignore'] ||
+                                ($inactive && $p['ignoreInactive'])) {
                             unset($in[$id]);
                             break;
                         }
-                        if ($p['log'])
-                            $logger->addErr(sprintf(Pommo::_T('Field (%s) must be a date ('.Pommo_Helper::timeGetFormat().').'), $field['prompt']));
+                        if ($p['log']) {
+                            $logger->addErr(
+                                sprintf(
+                                    Pommo::_T(
+                                        'Field (%s) must be a date ('
+                                        . Pommo_Helper::timeGetFormat() . ').'
+                                    ),
+                                    $field['prompt']
+                                )
+                            );
+                        }
                         $valid = false;
                     }
                     break;
                 case "number":
-                    if (!is_numeric($in[$id]))
-                    {
-                        if ($p['ignore'] || ($inactive && $p['ignoreInactive']))
-                        {
+                    if (!is_numeric($in[$id])) {
+                        if ($p['ignore'] ||
+                                ($inactive && $p['ignoreInactive'])) {
                             unset($in[$id]);
                             break;
                         }
-                        if ($p['log'])
-                            $logger->addErr(sprintf(Pommo::_T('Field (%s) must be a number.'), $field['prompt']));
+                        if ($p['log']) {
+                            $logger->addErr(
+                                sprintf(
+                                    Pommo::_T('Field (%s) must be a number.'),
+                                    $field['prompt']
+                                )
+                            );
+                        }
                         $valid = false;
                     }
                     break;
@@ -357,9 +363,8 @@ class Pommo_Validate
         $regex = '/^[_A-z0-9-]+((\.|\+)[_A-z0-9-]+)*@[A-z0-9-]+(\.[A-z0-9-]+)*'.
                 '(\.[A-z]{2,4})$/';
 
-        if (!preg_match($regex, $email))
-        {
-            $this->currentValidationError = _('Must be a valid email');
+        if (!preg_match($regex, $email)) {
+            $this->_currentValidationError = _('Must be a valid email');
             return false;
         }
         return true;
@@ -377,9 +382,8 @@ class Pommo_Validate
     {
         list($date, $time) = explode(' ', $date);
 
-        if (!self::validateDate($date) || !self::validateTime($time))
-        {
-            $this->currentValidationError = _('Must be a valid datetime');
+        if (!self::validateDate($date) || !self::validateTime($time)) {
+            $this->_currentValidationError = _('Must be a valid datetime');
             return false;
         }
 
@@ -398,9 +402,8 @@ class Pommo_Validate
     {
         list($year, $month, $day) = explode('-', $date);
         $isValid = @checkdate($month, $day, $year);
-        if (!$isValid)
-        {
-            $this->currentValidationError = _('Must be a valid date');
+        if (!$isValid) {
+            $this->_currentValidationError = _('Must be a valid date');
             return false;
         }
         return true;
@@ -420,26 +423,22 @@ class Pommo_Validate
         $isValid = true;
 
         $hour = (int)$hour;
-        if (0 > $hour || 24 < $hour)
-        {
+        if (0 > $hour || 24 < $hour) {
             $isValid = false;
         }
 
         $minute = (int)$minute;
-        if (0 > $minute || 59 < $minute)
-        {
+        if (0 > $minute || 59 < $minute) {
             $isValid = false;
         }
 
         $second = (int)$second;
-        if (0 > $second || 59 < $second)
-        {
+        if (0 > $second || 59 < $second) {
             $isValid = false;
         }
 
-        if (!$isValid)
-        {
-            $this->currentValidationError = _('Must be a valid time');
+        if (!$isValid) {
+            $this->_currentValidationError = _('Must be a valid time');
             return false;
         }
         return true;
@@ -456,15 +455,14 @@ class Pommo_Validate
     private function validateUrl($url)
     {
         $isValid = preg_match('!^http(s)?://[\w-]+\.[\w-]+(\S+)?$!i', $url);
-        if (!$isValid)
-        {
-            $this->currentValidationError = _('Must be a valid URL');
+        if (!$isValid) {
+            $this->_currentValidationError = _('Must be a valid URL');
             return false;
         }
         return true;
     }
 
-	/**
+    /**
      *  validatematchRegex
      * 	Validates that a string matches a regex
      *
@@ -476,12 +474,10 @@ class Pommo_Validate
     private function validatematchRegex($regex, $string)
     {
         $isValid = preg_match($regex, $string);
-        if (!$isValid)
-        {
-            $this->currentValidationError = _('Value is not valid');
+        if (!$isValid) {
+            $this->_currentValidationError = _('Value is not valid');
             return false;
         }
         return true;
     }
 }
-

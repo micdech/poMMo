@@ -8,11 +8,20 @@ module.exports = function(grunt) {
       ]
     },
     phpcs: {
-      all: {
-        dir: '*.php'
+      api: {
+        dir: 'classes/Pommo_Api.php'
       },
-      ajax: {
-        dir: 'ajax/*.php'
+      attachment: {
+        dir: 'classes/Pommo_Attachment.php'
+      },
+      auth: {
+        dir: 'classes/Pommo_Auth.php'
+      },
+      csvstream: {
+        dir: 'classes/Pommo_Csv_Stream.php'
+      },
+      options: {
+        standard: 'ruleset.xml'
       }
     }
   });
@@ -23,7 +32,11 @@ module.exports = function(grunt) {
   grunt.registerTask(
     'default',
     [
-      'phplint:all'
+      'phplint:all',
+      'phpcs:api',
+      'phpcs:auth',
+      'phpcs:csvstream',
+      'phpcs:attachment'
     ]
   );
 };

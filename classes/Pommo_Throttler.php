@@ -22,7 +22,8 @@
 // TODO -> This class needs rewritting -- better/clearer methods!
 
 // NOTE: Due to lack of support for usleep in PHP < 5.0 on IIS/Windows, Throttling is limited to *seconds*
-class Pommo_Throttler {
+class Pommo_Throttler
+{
 
     // THROTTLE VARIABLES, EXPLANATION
     // -----------------------------------------------
@@ -31,13 +32,13 @@ class Pommo_Throttler {
      * Beginning time of first mailing process script (seconds)
      * @var int
      */
-    var $_genesis;
+    private $_genesis;
 
     /**
      * Time current processing script started (seconds)
      * @var int
      */
-    var $_startTime;
+    private $_startTime;
 
     /**
      * The mode that this throttler is engaged in,
@@ -46,68 +47,68 @@ class Pommo_Throttler {
      * 3: Evaluate	| Evaluates mails per second, Adjusts periods and run cycle, Sleeps or changes mode
      * @var int
      */
-    var $_mode = 3;
+    private $_mode = 3;
 
     /**
      * Number of mails to release during a run cycle before hesitation
      * @var int
      */
-    var $_cycleSize = 1;
+    private $_cycleSize = 1;
 
     /**
      * Mails sent by a run cycle
      * @var int
      */
-    var $_cycleCount = 0;
+    private $_cycleCount = 0;
 
     /**
      * Period (seconds) to hesitate before releaseing a mail from the queue
      * Set when mode is evaluate
      * @var int
      */
-    var $_hesitatePeriod = 1;
+    private $_hesitatePeriod = 1;
 
     /**
      * Target mails per period (second) to achieve -- averaged
      * @var float
      */
-    var $_targetMPS;
+    private $_targetMPS;
 
     /**
      * Target bytes per period (second) to NOT exceed -- averaged
      * @var float
      */
-    var $_targetBPS;
+    private $_targetBPS;
 
     /**
      * Calculated actual/realtime mails per second -- averaged
      * @var float
      */
-    var $_actualMPS = 0.0;
+    private $_actualMPS = 0.0;
 
     /**
      * Calculated actual/realtime bytes per second -- averaged
      * @var float
      */
-    var $_actualBPS = 0.0;
+    private $_actualBPS = 0.0;
 
     /**
      * Calculated average bytes per mailing
      * @var float
      */
-    var $_averageBytes = 0.0;
+    private $_averageBytes = 0.0;
 
     /**
     * Total number of mails releaseed by throttler (cummulative)
     * @var float
     */
-    var $_sentMails = 0.0;
+    private $_sentMails = 0.0;
 
     /**
      * Total bytes sent via email (cummulative)
      * @var float
      */
-    var $_sentBytes = 0.0;
+    private $_sentBytes = 0.0;
 
     /**
      * The throttler queue of emails.
@@ -116,7 +117,7 @@ class Pommo_Throttler {
      *  $_queue[x][1] == .the domain.
      * @var array
      */
-    var $_queue;
+    private $_queue;
 
 
     // DOMAIN THROTTLING VARIABLES
@@ -128,7 +129,7 @@ class Pommo_Throttler {
      *  $_quarantine[x][1] == .the domain.
      * @var array
      */
-    var $_quarantine;
+    private $_quarantine;
 
     /**
      * Domain meta data. Holds array containing the # of mails and bytes sent to a domain in a period
@@ -138,31 +139,32 @@ class Pommo_Throttler {
      *  $_domain[example.com][2] == .number of bytes sent this period.
      * @var array
      */
-    var $_domain;
+    private $_domain;
 
     /**
      * Length of domain period (in seconds) to throttle against
      * @var int
      */
-    var $_domPeriod;
+    private $_domPeriod;
 
     /**
      * Maximum # of mails sent to a domain per period
      * @var int
      */
-    var $_domMPP;
+    private $_domMPP;
 
     /**
      * Maximum # of bytes sent to a domain per period
      * @var int
      */
-    var $_domBPP;
+    private $_domBPP;
 
     // DEFAULT CONSTRUCTOR
     // ------------------------------
 
     // bThrottler() - simple initialization of class variables.
-    function Pommo_Throttler($p = array(), & $history, &$sent, &$sentBytes) {
+    function Pommo_Throttler($p, & $history, &$sent, &$sentBytes)
+    {
         $this->logger =& Pommo::$_logger;
 
         $this->_targetMPS = floatval($p['MPS']);
@@ -194,51 +196,64 @@ class Pommo_Throttler {
         else
             $this->_adjust = 0.15;
 
-        $this->logger->addMsg('bThrottler initialized. [Genesis] ' . $this->_genesis . ' [Queue Size] ' . count($this->_queue) . ' [Target MPS] ' . $this->_targetMPS . ' [Target BPS] ' . $this->_targetBPS . ' [Domain Period] ' . $this->_domPeriod . ' [Domain MPP] ' . $this->_domMPP . ' [Domain BPP] ' . $this->_domBPP, 1);
+        $this->logger->addMsg(
+            'bThrottler initialized. [Genesis] ' . $this->_genesis .
+            ' [Queue Size] ' . count($this->_queue) . ' [Target MPS] ' .
+            $this->_targetMPS . ' [Target BPS] ' . $this->_targetBPS .
+            ' [Domain Period] ' . $this->_domPeriod . ' [Domain MPP] ' .
+            $this->_domMPP . ' [Domain BPP] ' . $this->_domBPP, 1
+        );
     }
 
     // PARENT METHODS (executed by mailing script)
     // -----------------------------------------------------------
 
-    function clearQueue() {
+    function clearQueue()
+    {
         $this->_quarantine = array();
         $this->_queue = array();
         return;
     }
 
-    function pushQueue(&$q) {
+    function pushQueue(&$q)
+    {
         $this->_queue = & $q;
         return;
     }
 
     // updateBytes() - Updates the bytes sent. Called by parent when byte throttling is enabled.
-    function updateBytes($bytes = 0, $domain = FALSE) {
+    function updateBytes($bytes = 0, $domain = FALSE)
+    {
         $this->_sentBytes += $bytes;
 
         if ($this->_domBPP > 0 && isset($this->_domain[$domain])) {
             $this->_domain[$domain][2] += $bytes;
             $this->logger->addMsg('updateBytes() called, added ' . $bytes . ' bytes to total and ' . $domain, 2);
         } else
-            $this->logger->addMsg('updateBytes() called, added ' .
-            $bytes . ' bytes to total', 2);
+            $this->logger->addMsg(
+                'updateBytes() called, added ' . $bytes . ' bytes to total', 2
+            );
         return;
     }
 
     // mailsInQueue() - Returns TRUE if there are mails left to process
-    function mailsInQueue() {
+    function mailsInQueue()
+    {
         if (empty ($this->_queue))
             return FALSE;
         return TRUE;
     }
 
     // adds more emails to the queue.
-    function loadQueue( & $queue) {
-        $this->_queue = array_merge($this->_queue,$queue);
+    function loadQueue( & $queue)
+    {
+        $this->_queue = array_merge($this->_queue, $queue);
         return;
     }
 
     // returns status of byte tracking - '1' if disabled, '2' if enabled, '3' if domain enabled, '4' if both enabled
-    function byteTracking() {
+    function byteTracking()
+    {
         $mask = 1;
         if ($this->_targetBPS > 0)
             $mask += 1;
@@ -249,8 +264,8 @@ class Pommo_Throttler {
 
 
     // pullQueue() - pops & returns an email address from the queue or quarantine. Returns FALSE if throttled back.
-    function pullQueue() {
-
+    function pullQueue()
+    {
         $retVal = FALSE; // return false by default
 
         // behave according to the set mode
@@ -258,7 +273,7 @@ class Pommo_Throttler {
 
             case 1 : // **hesitate**
 
-                $this->logger->addMsg('pullQueue() called - in hesitate mode',1);
+                $this->logger->addMsg('pullQueue() called - in hesitate mode', 1);
 
                 $this->_mode = 3; // set mode to evaluate
                 $this->pause();
@@ -270,7 +285,10 @@ class Pommo_Throttler {
             case 2 : // **run**
 
                 $this->_cycleCount++;
-                $this->logger->addMsg('pullQueue() called, in run mode (cycle ' . $this->_cycleCount . ' of ' . $this->_cycleSize . ')', 1);
+                $this->logger->addMsg(
+                    'pullQueue() called, in run mode (cycle ' . $this->_cycleCount .
+                    ' of ' . $this->_cycleSize . ')', 1
+                );
 
                 if ($this->_cycleSize == $this->_cycleCount) {
                     $this->_mode = 1; // set mode to hesitate
@@ -293,10 +311,15 @@ class Pommo_Throttler {
 
                     // calculate average bytes per mailing [calculated from first 10 mails to avoid large computation]
                     if ($this->_sentMails <= 10) {
-                        $this->_averageBytes = ($this->_sentMails == 0) ? $this->_sentBytes : $this->_sentBytes / $this->_sentMails;
+                        $this->_averageBytes = ($this->_sentMails == 0) ?
+                                $this->_sentBytes : $this->_sentBytes / $this->_sentMails;
                     }
 
-                    $this->logger->addMsg('BPS Throttle -> calculated to ' . $this->_actualBPS . 'BPS with average message size of ' . $this->_averageBytes . ' bytes and a total of ' . $this->_sentBytes . ' bytes sent.', 2);
+                    $this->logger->addMsg(
+                        'BPS Throttle -> calculated to ' . $this->_actualBPS .
+                        'BPS with average message size of ' . $this->_averageBytes .
+                        ' bytes and a total of ' . $this->_sentBytes . ' bytes sent.', 2
+                    );
 
                     // attempt to slow the engine
                     $this->slowBytes();
@@ -328,8 +351,7 @@ class Pommo_Throttler {
                         $suggest = $this->smartInit();
                     }
                     $this->_mode = $suggest;
-                }
-                else { // throttling disabled
+                } else { // throttling disabled
                     $retVal = $this->release();
                 }
                 break;
@@ -337,14 +359,18 @@ class Pommo_Throttler {
 
         if ($retVal) { // an email was successfully pulled from the queue / quarantine
             $this->_sentMails += 1;
-            $this->logger->addMsg('pullQueue() released ' . $retVal[0] . '. ' . $this->_sentMails . ' mails released so far.', 2);
+            $this->logger->addMsg(
+                'pullQueue() released ' . $retVal[0] . '. ' . $this->_sentMails .
+                ' mails released so far.', 2
+            );
         }
         return $retVal;
 
     }
 
     // attempts to release an email from the queue or quarantine
-    function release() {
+    function release()
+    {
         if ($this->_domMPP > 0 || $this->_domMPP > 0)  // domain throttling enabled
             return $this->domainRelease(); // call domain thrtottler release
         else // domain throtting NOT enabled
@@ -353,15 +379,20 @@ class Pommo_Throttler {
     }
 
     // attempts to release an email from the queue or quarantine, after checking with domain controller
-    function domainRelease($attempt = 0) {
+    function domainRelease($attempt = 0)
+    {
         $attempt++;
-        $this->logger->addMsg('domainRelease(), Attempt #'.$attempt.' to release from domain controller',1);
+        $this->logger->addMsg(
+            'domainRelease(), Attempt #'.$attempt.' to release from domain controller', 1
+        );
 
         if ($attempt > 10)
             sleep(1);
 
         if ($attempt == 15)
-            $this->logger->addMsg('Domain Throttle Controller is bottlenecking, release attempts are exceeding thresholds.',3);
+            $this->logger->addMsg(
+                'Domain Throttle Controller is bottlenecking, release attempts are exceeding thresholds.', 3
+            );
 
         if ($attempt == 20)
             return false;
@@ -381,10 +412,12 @@ class Pommo_Throttler {
             if ($this->domainCheck($email[1]))
                 return $email;
 
-            $this->logger->addMsg('domainRelease() - Quarantining ' . $email[0] . '. Domain '.$email[1] . ' has reached its limits.', 2);
+            $this->logger->addMsg(
+                'domainRelease() - Quarantining ' .
+                $email[0] . '. Domain '.$email[1] . ' has reached its limits.', 2
+            );
             $this->_quarantine[] = $email;
-        }
-        else { // poll quarantine
+        } else { // poll quarantine
             srand((float) microtime() * 10000000);
             $key = array_rand($this->_quarantine);
             $email = $this->_quarantine[$key];
@@ -398,8 +431,8 @@ class Pommo_Throttler {
     }
 
     // domainCheck() - validates that a domain has not exceeded its limit per period
-    function domainCheck(& $domain) {
-
+    function domainCheck(& $domain)
+    {
         /**
         * Domain meta data. Holds array containing the # of mails and bytes sent to a domain in a period
         *  Array(example.com => array(0 => '183673892212', 1 => '3', 2 => '14812'))
@@ -429,12 +462,19 @@ class Pommo_Throttler {
         return false;
     }
 
-    function slowBytes() {
-        if (($this->_averageBytes + $this->_sentBytes) / (time() - $this->_genesis) > $this->_targetBPS) { // bytes per second threshold at limit
+    function slowBytes()
+    {
+        if (($this->_averageBytes + $this->_sentBytes) /
+                (time() - $this->_genesis) > $this->_targetBPS) { // bytes per second threshold at limit
 
             // calculate optimal rest period, add cycleSize of seconds of buffer
-            $rest = $this->_cycleSize + ((($this->_averageBytes + $this->_sentBytes) / $this->_targetBPS) - (time() - $this->_genesis));
-            $this->logger->addMsg('Bytes Per Second threshold reached (currently ' . $this->_actualBPS . 'BPS, target: ' . $this->_targetBPS . 'BPS). Sleeping for ' . $rest . ' seconds.', 3);
+            $rest = $this->_cycleSize + ((($this->_averageBytes + $this->_sentBytes) /
+                    $this->_targetBPS) - (time() - $this->_genesis));
+            $this->logger->addMsg(
+                'Bytes Per Second threshold reached (currently ' .
+                $this->_actualBPS . 'BPS, target: ' . $this->_targetBPS .
+                'BPS). Sleeping for ' . $rest . ' seconds.', 3
+            );
             sleep($rest);
 
             // reset cyclesize so we don't far exceed bytes / second (a gap could possibly grow...?)
@@ -442,7 +482,8 @@ class Pommo_Throttler {
         }
     }
 
-    function speedup() {
+    function speedup()
+    {
         $this->logger->addMsg('MPS Throttle -> Speedup requested', 2);
         if ($this->_hesitatePeriod > 5) {  // max slow state, prioritize call
             $this->_hesitatePeriod = 2;
@@ -457,7 +498,8 @@ class Pommo_Throttler {
         return 2; // run mode
     }
 
-    function slowdown() {
+    function slowdown()
+    {
         $this->logger->addMsg('MPS Throttle -> Slowdown requested', 2);
         if ($this->_cycleSize > 3) { // max fast state, prioritize call
             $this->_hesitatePeriod = 1;
@@ -476,14 +518,17 @@ class Pommo_Throttler {
         return 1; // hesitate mode
     }
 
-    function pause() {
-        $this->logger->addMsg('Throttle pausing for '.$this->_hesitatePeriod.' seconds',1);
+    function pause()
+    {
+        $this->logger->addMsg(
+            'Throttle pausing for ' . $this->_hesitatePeriod . ' seconds', 1
+        );
         sleep($this->_hesitatePeriod);
     }
 
     // sets the mode, hP, and cS according to target mails per second
-    function smartInit() {
-
+    function smartInit()
+    {
         if ($this->_targetMPS < 0.15) {
             $this->_hesitatePeriod = 7;
             $this->pause();
@@ -532,4 +577,3 @@ class Pommo_Throttler {
         }
     }
 }
-?>

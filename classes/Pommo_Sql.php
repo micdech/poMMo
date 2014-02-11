@@ -22,9 +22,6 @@
 // REWRITE ALL...
 
 class Pommo_Sql {
-
-
-
     // returns where clauses as array
     // accepts a attribute filtering array.
     //   array_key == column, value is filter table filter table (subscriber_pending, subscriber_data, subscribers)
@@ -239,41 +236,6 @@ class Pommo_Sql {
         global $pommo;
         $dbo =& Pommo::$_dbo;
 
-        /*
-        SELECT count(subscriber_id)
-            from subscribers
-            where
-            status ='1'
-            AND ( // base group
-            subscriber_id in
-                (select subscriber_id from subscriber_data  where  field_id =3 and value IN ('on'))
-            AND subscriber_id in
-                (select subscriber_id from subscriber_data  where  field_id =4 and value NOT IN ('lemur'))
-            OR subscriber_id in
-                (select subscriber_id from subscriber_data  where  field_id =5 and value NOT IN ('on'))
-            )
-            AND subscriber_ID NOT IN(  // exclude group
-                SELECT subscriber_id from subscribers where status ='1' AND (
-                    subscriber_id in
-                        (select ... zzz)
-                    AND subsriber_id in
-                        (select ... zzz)
-                    OR subscriber_id in
-                        (select ... zzz)
-                )
-            )
-            OR subscriber_ID IN(  // include group
-                SELECT subscriber_id from subscribers where status ='1' AND (
-                    subscriber_id in
-                        (select ... zzz)
-                    AND subsriber_id in
-                        (select ... zzz)
-                    OR subscriber_id in
-                        (select ... zzz)
-                )
-            )
-            */
-
         $rules = Pommo_Sql::sortRules($group['rules']);
         $ands = Pommo_Sql::getSubQueries(Pommo_Sql::sortLogic($rules['and']));
         $ors = (empty($rules['or'])) ?
@@ -336,6 +298,4 @@ class Pommo_Sql {
         }
         return $sql;
     }
-
 }
-?>

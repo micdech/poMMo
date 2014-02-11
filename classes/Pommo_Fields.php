@@ -15,7 +15,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with program; see the file docs/LICENSE. If not, write to the
- * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+ * MA 02110-1301 USA.
  */
 
 // include the field prototype object
@@ -27,20 +28,22 @@ require_once(Pommo::$_baseDir.'classes/Pommo_Type.php');
  *	field_id		(int)			Database ID/Key
  *	field_active	('on','off')	If field is displayed on subscriber form
  *	field_ordering	(int)			Order in which field is displayed @ subscriber form
- *	field_name		(str)			Descriptive name for field (used for short identification)
- *	field_prompt	(str)			Prompt assosiated with field on subscriber form
- *	field_normally	(str)			Default value of field on subscriber form
- *	field_array		(str)			A serialized array of  the field such as the options of multiple choice fields (drop down select)
- *	field_required	('on','off')	If field is required for subscription
- *	field_type		(enum)			checkbox, multiple, text, date, number, comment
+ *	field_name (str) Descriptive name for field (used for short identification)
+ *	field_prompt (str) Prompt assosiated with field on subscriber form
+ *	field_normally (str) Default value of field on subscriber form
+ *	field_array (str) A serialized array of  the field such as the options of
+ *  multiple choice fields (drop down select)
+ *	field_required ('on','off') If field is required for subscription
+ *	field_type (enum) checkbox, multiple, text, date, number, comment
  */
 
-class Pommo_Fields {
-
+class Pommo_Fields
+{
     // makes a field
     // accepts a field template (assoc array)
     // return a field (array)
-    static function make($in = array()) {
+    static function make($in = array())
+    {
         $o = Pommo_Type::field();
         return Pommo_Api::getParams($o, $in);
     }
@@ -48,7 +51,8 @@ class Pommo_Fields {
     // makes a field based off a database row (field schema)
     // accepts a field template (assoc array)
     // return a field (array)
-    static function makeDB($row) {
+    static function makeDB($row)
+    {
         $in = @array(
         'id' => $row['field_id'],
         'active' => $row['field_active'],
@@ -69,14 +73,16 @@ class Pommo_Fields {
     // field validation
     // accepts a field (array)
     // returns true if field ($in) is valid, false if not
-    static function validate(&$in) {
+    static function validate(&$in)
+    {
         $logger = Pommo::$_logger;
 
         $invalid = array();
 
-        if (empty($in['name']) || substr($in['name'],0,1) == '!' || strpos($in['name'],'|'))
+        if (empty($in['name']) || substr($in['name'], 0, 1) == '!'
+                || strpos($in['name'], '|')) {
             $invalid[] = 'name';
-        else {
+        } else {
             switch (strtolower($in['name'])) {
                 case 'email':
                 case 'ip':
@@ -120,7 +126,9 @@ class Pommo_Fields {
             $invalid[] = 'array';
 
         if (!empty($invalid)) {
-            $logger->addErr("Field failed validation on; ".implode(',',$invalid),1);
+            $logger->addErr(
+                "Field failed validation on; " . implode(',', $invalid), 1
+            );
             return false;
         }
         return true;
@@ -132,7 +140,8 @@ class Pommo_Fields {
     //   id (array) -> an array of field IDs
     //   byName -> will order by name (alphabetical .. else by default order)
     // returns an array of fields. Array key(s) correlates to field key.
-    static function get($p = array()) {
+    static function get($p = array())
+    {
         $defaults = array('active' => false, 'id' => null, 'byName' => false);
         $p = Pommo_Api::getParams($defaults, $p);
 
@@ -152,7 +161,7 @@ class Pommo_Fields {
                 [AND field_active='%S']
                 [AND field_id IN(%C)]
             ORDER BY ".$p['byName'];
-        $query = $dbo->prepare($query,array($p['active'],$p['id']));
+        $query = $dbo->prepare($query, array($p['active'], $p['id']));
 
         while ($row = $dbo->getRows($query))
             $o[$row['field_id']] = Pommo_Fields::makeDB($row);
@@ -164,7 +173,8 @@ class Pommo_Fields {
     // accepts a filtering array -->
     //   id (int || array) -> an array of field IDs
     // returns an array of field names. Array key(s) correlates to field ID.
-    function & getNames($id = null) {
+    function & getNames($id = null)
+    {
         $dbo =& Pommo::$_dbo;
 
         $o = array();
@@ -176,7 +186,7 @@ class Pommo_Fields {
                 1
                 [AND field_id IN(%C)]
             ORDER BY field_name";
-        $query = $dbo->prepare($query,array($id));
+        $query = $dbo->prepare($query, array($id));
 
         while ($row = $dbo->getRows($query))
             $o[$row['field_id']] = $row['field_name'];
@@ -188,7 +198,8 @@ class Pommo_Fields {
     // fetches field's belonging to a type
     // accepts a field type or array of types
     // returns an array of field IDs
-    public static function getByType($type) {
+    public static function getByType($type)
+    {
         $dbo =& Pommo::$_dbo;
 
         if(!is_array($type))
@@ -198,15 +209,16 @@ class Pommo_Fields {
             SELECT field_id
             FROM " . $dbo->table['fields']."
             WHERE field_type IN (%q)";
-        $query = $dbo->prepare($query,array($type));
+        $query = $dbo->prepare($query, array($type));
 
-        return $dbo->getAll($query,'assoc','field_id');
+        return $dbo->getAll($query, 'assoc', 'field_id');
     }
 
     // adds a field to the database
     // accepts a field (array)
     // returns the database ID of the added field or FALSE if failed
-    static function add(&$in) {
+    static function add(&$in)
+    {
         $dbo =& Pommo::$_dbo;
 
         // set the ordering of field if not provided
@@ -233,16 +245,19 @@ class Pommo_Fields {
         field_array='%s',
         field_required='%s',
         field_type='%s'";
-        $query = $dbo->prepare($query,@array(
-            $in['active'],
-            $in['ordering'],
-            $in['name'],
-            $in['prompt'],
-            $in['normally'],
-            serialize($in['array']),
-            $in['required'],
-            $in['type']
-        ));
+        $query = $dbo->prepare(
+            $query,
+            @array(
+                $in['active'],
+                $in['ordering'],
+                $in['name'],
+                $in['prompt'],
+                $in['normally'],
+                serialize($in['array']),
+                $in['required'],
+                $in['type']
+            )
+        );
 
         return $dbo->lastId($query);
     }

@@ -379,11 +379,10 @@ class Pommo
      */
     function _TP($msg, $plural, $count)
     {
-        if(Pommo::$_escaping)
-        {
+        if (Pommo::$_escaping) {
             return (Pommo::$_l10n) ? htmlspecialchars(
-                    Pommo_Helper_L10n::translatePlural($msg, $plural, $count)) :
-                    htmlspecialchars($msg);
+                Pommo_Helper_L10n::translatePlural($msg, $plural, $count)
+            ) : htmlspecialchars($msg);
         }
         return (Pommo::$_l10n) ?
                 Pommo_Helper_L10n::translatePlural($msg, $plural, $count) : $msg;
@@ -398,16 +397,17 @@ class Pommo
      */
     public static function set($value)
     {
-        if (!is_array($value))
-        {
+        if (!is_array($value)) {
             $value = array (
                 $value => TRUE
             );
         }
         return (empty(self::$_session['data'])) ?
                 self::$_session['data'] = $value :
-                self::$_session['data'] = array_merge(self::$_session['data'],
-                $value);
+                self::$_session['data'] = array_merge(
+                    self::$_session['data'],
+                    $value
+                );
     }
 
     /*	get
@@ -419,8 +419,7 @@ class Pommo
      */
     public static function get($name = FALSE)
     {
-        if ($name)
-        {
+        if ($name) {
             return (isset(self::$_session['data'][$name])) ?
                     self::$_session['data'][$name] :
                     array();
@@ -444,42 +443,29 @@ class Pommo
         //	allows code shortcuts ;)
         //  if url DOES NOT start with '/', the section will automatically be
         //	appended
-        if (!preg_match('@^https?://@i', $url))
-        {
-            if (strpos($url, Pommo::$_baseUrl) === false)
-            {
-                if (substr($url, 0, 1) != '/')
-                {
-                    if (Pommo::$_section != 'user' && Pommo::$_section != 'admin')
-                    {
+        if (!preg_match('@^https?://@i', $url)) {
+            if (strpos($url, Pommo::$_baseUrl) === false) {
+                if (substr($url, 0, 1) != '/') {
+                    if (Pommo::$_section != 'user' &&
+                            Pommo::$_section != 'admin') {
                         $url = Pommo::$_http.Pommo::$_baseUrl.$url;
-                    }
-                    else
-                    {
+                    } else {
                         $url = Pommo::$_http.Pommo::$_baseUrl.Pommo::$_section.
                                 '/'.$url;
                     }
-                }
-                else
-                {
+                } else {
                     $url = Pommo::$_http.Pommo::$_baseUrl.
                             str_replace(Pommo::$_baseUrl, '', substr($url, 1));
                 }
-            }
-            else
-            {
+            } else {
                 $url = Pommo::$_http.$url;
             }
         }
         header('Location: '.$url);
-        if ($kill)
-        {
-            if ($msg)
-            {
+        if ($kill) {
+            if ($msg) {
                 Pommo::kill($msg);
-            }
-            else
-            {
+            } else {
                 Pommo::kill(Pommo::_T('Redirecting, please wait...'));
             }
         }
@@ -497,10 +483,8 @@ class Pommo
     public static function kill($msg = NULL, $backtrace = FALSE)
     {
         // output passed message
-        if ($msg)
-        {
-            if (empty(self::$_workDir))
-            {
+        if ($msg) {
+            if (empty(self::$_workDir)) {
                 echo ('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
                         "http://www.w3.org/TR/html4/strict.dtd">');
                 echo ('<title>poMMo Error</title>'); // Added for valid output
@@ -508,9 +492,7 @@ class Pommo
                         'themes/shared/images/icons/alert.png" alt="alert icon"
                         style="vertical-align: middle; margin-right: 20px;"/>'.
                         $msg.'</div>';
-            }
-            else
-            {
+            } else {
                 $logger = self::$_logger;
                 $logger->addErr($msg);
                 require_once self::$_baseDir.'classes/Pommo_Template.php';
@@ -521,24 +503,28 @@ class Pommo
         }
 
         // output debugging info if enabled (in config.php)
-        if (self::$_debug)
-        {
+        if (self::$_debug) {
             require_once(self::$_baseDir.'classes/Pommo_Helper_Debug.php');
             $debug = new Pommo_Helper_Debug();
             $debug->bmDebug();
         }
 
-        if ($backtrace)
-        {
+        if ($backtrace) {
             $backtrace = debug_backtrace();
             echo @'<h2>BACKTRACE</h2>'.
-                    '<p>'.@str_ireplace(Pommo::$_baseDir, '',
-                    $backtrace[1]['file']).':'.$backtrace[1]['line'].' '.
+                    '<p>'.@str_ireplace(
+                        Pommo::$_baseDir, '',
+                        $backtrace[1]['file']
+                    ).':'.$backtrace[1]['line'].' '.
                     $backtrace[1]['function'].'()</p>'
-                    .'<p>'.@str_ireplace(Pommo::$_baseDir, '',
-                    $backtrace[2]['file']).' '.$backtrace[2]['function'].
-                    '()</p>'.'<p>'.@str_ireplace(Pommo::$_baseDir, '',
-                    $backtrace[3]['file']).' '.$backtrace[3]['function'].
+                    .'<p>'.@str_ireplace(
+                        Pommo::$_baseDir, '',
+                        $backtrace[2]['file']
+                    ).' '.$backtrace[2]['function'].
+                    '()</p>'.'<p>'.@str_ireplace(
+                        Pommo::$_baseDir, '',
+                        $backtrace[3]['file']
+                    ).' '.$backtrace[3]['function'].
                     '()</p>';
         }
 
@@ -559,8 +545,7 @@ class Pommo
     static function startSession($name = null)
     {
         static $start = false;
-        if (!$start)
-        {
+        if (!$start) {
             session_start();
         }
         $start = true;
@@ -568,14 +553,12 @@ class Pommo
         // generate unique session name
         $key = self::$_config['key'];
 
-        if (empty($key))
-        {
+        if (empty($key)) {
             $key = '123456';
         }
 
         // create SESSION placeholder for if this is a new session
-        if (empty ($_SESSION['pommo'.$key]))
-        {
+        if (empty ($_SESSION['pommo'.$key])) {
             $_SESSION['pommo'.$key] = array (
                 'data' => array (),
                 'state' => array (),
@@ -594,8 +577,7 @@ class Pommo
     static function logErrors()
     {
         // ignore call if verbosity maximum.
-        if (self::$_verbosity < 2)
-        {
+        if (self::$_verbosity < 2) {
             return;
         }
 
@@ -613,8 +595,10 @@ class Pommo
     public static function debug($text)
     {
         $mysqli = new mysqli("localhost", "cerr_user", "asdfasdf", "pommo");
-        $mysqli->query("INSERT INTO adebug(content) VALUES('".
-                $mysqli->real_escape_string($text)."')");
+        $mysqli->query(
+            "INSERT INTO adebug(content) VALUES('".
+            $mysqli->real_escape_string($text)."')"
+        );
         $mysqli->close();
     }
 }

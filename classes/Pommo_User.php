@@ -46,8 +46,7 @@ class Pommo_User
     {
         try
         {
-            if (!$username || !$password)
-            {
+            if (!$username || !$password) {
                 throw new Exception();
             }
 
@@ -56,8 +55,7 @@ class Pommo_User
 
             $query = 'INSERT INTO '.$dbo->table['users'].'
                     SET username = "%s", password = SHA1("%s")';
-            if (!$dbo->query($dbo->prepare($query, array($username, $password))))
-            {
+            if (!$dbo->query($dbo->prepare($query, array($username, $password)))) {
                 throw new Exception();
             }
             return true;
@@ -87,8 +85,7 @@ class Pommo_User
                     FROM '.$dbo->table['users'].'
                     WHERE username = "%s" && password = SHA1("%s")';
             $query = $dbo->prepare($query, array($username, $password));
-            if ($row = $dbo->getRows($query))
-            {
+            if ($row = $dbo->getRows($query)) {
                 return true;
             }
             throw new Exception();
@@ -116,18 +113,15 @@ class Pommo_User
         {
             $this->pages = 0;
 
-            if (50 < $data['limit'] && 0 >= $data['limit'])
-            {
+            if (50 < $data['limit'] && 0 >= $data['limit']) {
                 $data['limit'] = 10;
             }
 
-            if (!in_array($data['order'], array('ASC', 'DESC')))
-            {
+            if (!in_array($data['order'], array('ASC', 'DESC'))) {
                 $data['order'] = 'ASC';
             }
 
-            if (!$data['page'])
-            {
+            if (!$data['page']) {
                 $data['page'] = 1;
             }
 
@@ -141,8 +135,7 @@ class Pommo_User
             $this->records = $records;
             $this->pages = ceil($records / $data['limit']);
 
-            if ($data['page'] > $this->pages)
-            {
+            if ($data['page'] > $this->pages) {
                 $data['page'] = $this->pages;
             }
 
@@ -174,8 +167,7 @@ class Pommo_User
     {
         try
         {
-            if (!is_array($users))
-            {
+            if (!is_array($users)) {
                 $users = array($users);
             }
 
@@ -183,12 +175,10 @@ class Pommo_User
             $dbo->_dieOnQuery = false;
 
             $return = true;
-            foreach ($users as $user)
-            {
+            foreach ($users as $user) {
                 $query = 'DELETE FROM '.$dbo->table['users'].'
                         WHERE username = "%s"';
-                if (!$dbo->query($dbo->prepare($query, array($user))))
-                {
+                if (!$dbo->query($dbo->prepare($query, array($user)))) {
                     $return = false;
                 }
             }

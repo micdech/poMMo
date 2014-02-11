@@ -15,7 +15,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with program; see the file docs/LICENSE. If not, write to the
- * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+ * MA 02110-1301 USA.
  */
 
 // common API
@@ -36,14 +37,13 @@ class Pommo_Api
 
         // 	make sure all submitted parameters are "known" by verifying size of
         //	final array
-        if (count($p) > count($defaults))
-        {
-            if (Pommo::$_verbosity < 3)
-            {
+        if (count($p) > count($defaults)) {
+            if (Pommo::$_verbosity < 3) {
                 var_dump($defaults, $args);
             }
-            Pommo::kill('Unknown argument passed to Pommo_Api::getParams()',
-                    TRUE);
+            Pommo::kill(
+                'Unknown argument passed to Pommo_Api::getParams()', TRUE
+            );
         }
 
         return $p;
@@ -66,8 +66,7 @@ class Pommo_Api
             WHERE autoload="on"';
         $query = $dbo->prepare($query);
 
-        while ($row = $dbo->getRows($query))
-        {
+        while ($row = $dbo->getRows($query)) {
             $config[$row['config_name']] = $row['config_value'];
         }
 
@@ -88,8 +87,7 @@ class Pommo_Api
         $dbo = Pommo::$_dbo;
         $dbo->dieOnQuery(FALSE);
 
-        if ($arg == 'all')
-        {
+        if ($arg == 'all') {
             $arg = null;
         }
 
@@ -98,8 +96,7 @@ class Pommo_Api
             [WHERE config_name IN(%Q)]';
         $query = $dbo->prepare($query, array($arg));
 
-        while ($row = $dbo->getRows($query))
-        {
+        while ($row = $dbo->getRows($query)) {
             $config[$row['config_name']] = $row['config_value'];
         }
 
@@ -113,14 +110,13 @@ class Pommo_Api
     {
         $dbo = Pommo::$_dbo;
 
-        if (!is_array($input))
-        {
+        if (!is_array($input)) {
             Pommo::kill('Bad input passed to updateConfig', TRUE);
         }
 
         // if this is password, skip if empty
-        if (isset($input['admin_password']) && empty($input['admin_password']))
-        {
+        if (isset($input['admin_password'])
+            && empty($input['admin_password'])) {
             unset($input['admin_password']);
         }
 
@@ -135,19 +131,24 @@ class Pommo_Api
 
         // update rows/options
         $when = '';
-        while ($row = $dbo->getRows($query)) { // multi-row update in a single query syntax
-            $when .= $dbo->prepare("WHEN '%s' THEN '%s'",array($row['config_name'],$input[$row['config_name']])).' ';
-            $where[] = $row['config_name']; // limits multi-row update query to specific rows (vs updating entire table)
+        // multi-row update in a single query syntax
+        while ($row = $dbo->getRows($query)) {
+            $when .= $dbo->prepare(
+                "WHEN '%s' THEN '%s'",
+                array($row['config_name'], $input[$row['config_name']])
+            ).' ';
+            // limits multi-row update query to specific rows
+            // (vs updating entire table)
+            $where[] = $row['config_name'];
         }
         $query = "
             UPDATE " . $dbo->table['config'] . "
             SET config_value =
                 CASE config_name ".$when." ELSE config_value END
             [WHERE config_name IN(%Q)]";
-        $query = $dbo->prepare($query,array($where));
+        $query = $dbo->prepare($query, array($where));
 
-        if (!$dbo->query($query))
-        {
+        if (!$dbo->query($query)) {
             Pommo::kill('Error updating config');
         }
         return true;
@@ -162,43 +163,36 @@ class Pommo_Api
      *
      *	@return	array	$state.- Current state
      */
-    static function &stateInit($name = 'default', $defaults = array (), $source = array())
+    static function &stateInit($name = 'default', $defaults = array (),
+        $source = array())
     {
-        if (empty(Pommo::$_session['state'][$name]))
-        {
+        if (empty(Pommo::$_session['state'][$name])) {
             Pommo::$_session['state'][$name] = &$defaults;
         }
 
         $state = &Pommo::$_session['state'][$name];
 
-        if (empty($defaults))
-        {
+        if (empty($defaults)) {
             return $state;
         }
 
         //Add support for passing multi select options
-        if (is_array($source))
-        {
-            foreach ($source as $k => $v)
-            {
-                if (is_array($source[$k]))
-                {
+        if (is_array($source)) {
+            foreach ($source as $k => $v) {
+                if (is_array($source[$k])) {
                     $source[$k] = implode(',', $source[$k]);
                 }
             }
         }
 
-        foreach (array_keys($state) as $key)
-        {
-            if (array_key_exists($key, $source))
-            {
+        foreach (array_keys($state) as $key) {
+            if (array_key_exists($key, $source)) {
                 $state[$key] = $source[$key];
             }
         }
 
         // normalize the page state
-        if (count($state) > count($defaults))
-        {
+        if (count($state) > count($defaults)) {
             $state = Pommo_Helper::arrayIntersect($state, $defaults);
         }
 
@@ -209,7 +203,8 @@ class Pommo_Api
     // accepts a state name or array of state names to clear
     //   if not supplied, ALL page states are cleared
     // returns (bool)
-    function stateReset($state = array()) {
+    function stateReset($state = array())
+    {
         if (!is_array($state))
             $state = array($state);
 

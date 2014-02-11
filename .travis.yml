@@ -1,5 +1,7 @@
 language: php
 php:
   - "5.4"
-before_script: "npm install"
+before_script:
+  - pyrus install pear/PHP_CodeSniffer
+  - npm install
 script: "./node_modules/grunt-cli/bin/grunt"
